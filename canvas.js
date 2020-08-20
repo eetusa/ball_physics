@@ -156,7 +156,7 @@ let balls;
 
 function init(){
     balls = [];
-    for (let i = 0; i < 2; i++){
+    for (let i = 0; i < 5; i++){
         let radius = 100;
         let x = randomIntFromRange(radius,canvas.width-radius);
         let y = randomIntFromRange(radius,canvas.height-radius);
