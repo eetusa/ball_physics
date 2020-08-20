@@ -33,6 +33,39 @@ addEventListener("resize",function(){
 });
 
 // Utility functions
+function Point(x, y) {
+	this.x = x;
+	this.y = y;
+}
+Point.prototype = {
+	relative: function(to) {
+		return new Vector(to.x - this.x, to.y - this.y);
+	},
+	distance: function(to) {
+		return Math.sqrt(Math.pow(this.x - to.x, 2) + Math.pow(this.y - to.y, 2));
+	}
+};
+function Vector(x1, x2) {
+	this.x1 = x1;
+	this.x2 = x2;
+}
+Vector.prototype = {
+	add: function(other) {
+		return new Vector(this.x1 + other.x1, this.x2 + other.x2);
+	},
+	scale: function(by) {
+		return new Vector(this.x1 * by, this.x2 * by);
+	},
+	normalize: function() {
+		function norm(value) {
+			return value > 0 ? 1 : value < 0 ? -1 : 0;
+		}
+		return new Vector(norm(this.x1), norm(this.x2));
+    },
+    dot: function(other){
+        return (this.x1*other.x1)+(this.x2*other.x2);
+    }
+};
 function randomIntFromRange(min,max){
     return Math.floor(Math.random() * (max - min +1 ) + min);
 }
@@ -43,6 +76,97 @@ function distance(x1, y1, x2, y2){
 
 function randomColor(color){
     return colors[Math.floor(Math.random()*colors.length)];
+}
+
+function velocityOnCollision3(ball1,ball2){
+    let x1 = ball1.velocity.x;
+    let y1 = ball1.velocity.y;
+    let x2 = ball2.velocity.x;
+    let y2 = ball2.velocity.y;
+    let mass1 = ball1.mass;
+    let mass2 = ball2.mass;
+    let distance = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
+
+    let v1 = new Vector(x1,y1);
+    let v2 = new Vector(x2,y2);
+
+    let n = new Vector((x2-x1),(y2-y1));
+    let t = n.scale(1/distance);
+
+    let a1 = v1.dot(t);
+    let a2 = v2.dot(t);
+
+    let optimizedP = (2.0 * (a1-a2))/(mass1+mass2);
+
+    let temp1 =t.scale(optimizedP*mass2);
+    let temp2 =t.scale(optimizedP*mass1);
+    temp1.x1=-temp1.x1;
+    temp1.x2=-temp2.x2;
+    temp2.x1=-temp2.x1;
+    temp2.x2=-temp2.x2;
+
+    let v1a = v1.add(temp1);
+    let v2a = v2.add(temp2);
+
+    ball1.velocity.x = v1a.x1;
+    ball1.velocity.y = v1a.x2;
+    
+    ball2.velocity.x = v2a.x1;
+    ball2.velocity.y = v2a.x2;
+}
+
+function velocityOnCollision2(ball1,ball2){
+    let x1 = ball1.velocity.x;
+    let y1 = ball1.velocity.y;
+
+    let x2 = ball2.velocity.x;
+    let y2 = ball2.velocity.y;
+
+    let m1 = ball1.mass;
+    let m2 = ball2.mass;
+
+    let X = x2 - x1;
+    let Y = y2 - y1;
+
+    let D = Math.sqrt( ( Math.pow(X,2)+Math.pow(Y,2) ));
+
+    let V1 = new Vector(x1,y1);
+    let V2 = new Vector(x2,y2);
+
+    let N = new Vector(X,Y);
+
+    let UN = N.scale(1/D);
+    let UT = new Vector(-UN.x2,UN.x1);
+
+    // scalar velocitys along N and T for both objects
+    let v1Nb = (UN.x1*x1)+(UN.x2*y1);
+    let v1Tb = (UT.x1*x1)+(UT.x2*y1);
+
+    let v2Nb = (UN.x1*x2)+(UN.x2*y2);
+    let v2Tb = (UT.x1*x2)+(UT.x2*y2);
+
+    let v1Ta = v1Tb;
+    let v2Ta = v2Tb;
+
+    // conservation of energy >>
+    let v1Na = (v1Nb*(m1-m2)+2*m2*v2Nb)/(m1+m2);
+    let v2Na = (v2Nb*(m2-m1)+2*m1*v1Nb)/(m1+m2);
+
+    V1Na = UN.scale(v1Na);
+    V1Ta = UT.scale(v1Ta);
+
+    V2Na = UN.scale(v2Na);
+    V2Ta = UT.scale(v2Ta);
+
+    V1a = V1Na.add(V1Ta);
+    V2a = V2Na.add(V2Ta);
+
+    ball1.velocity.x = V1a.x1;
+    ball1.velocity.y = V1a.x2;
+
+    ball2.velocity.x = V2a.x1;
+    ball2.velocity.y = V2a.x2;
+
 }
 
 function velocityOnCollision(ball1,ball2){
@@ -103,6 +227,8 @@ function velocityOnCollision(ball1,ball2){
     ball2.y += ball2.velocity.y;
 }
 
+
+
 // Objects
 
 function Ball(x, y, radius, color){
@@ -124,7 +250,7 @@ function Ball(x, y, radius, color){
             
             if (this === balls[i]) continue;
             if (distance(this.x,this.y,balls[i].x,balls[i].y)<this.radius*2){
-                velocityOnCollision(this,balls[i]);
+                velocityOnCollision2(this,balls[i]);
             }
         }     
         if (this.x <= this.radius || this.x >= innerWidth-this.radius){
