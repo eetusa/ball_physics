@@ -122,6 +122,13 @@ function velocityOnCollision2(ball1,ball2){
     let m1 = ball1.mass;
     let m2 = ball2.mass;
 
+    if (ball1.clicked){
+        m1 = 4*m2;
+    }
+    if (ball2.clicked){
+        m2 = 4*m1;
+    }
+
     let X = x2 - x1;
     let Y = y2 - y1;
     let D = Math.sqrt( ( Math.pow(ball2.x-ball1.x,2)+Math.pow(ball2.y-ball1.y,2) ));
@@ -140,10 +147,10 @@ function velocityOnCollision2(ball1,ball2){
    // let movx = a*1.0;
    // let movy = b*1.0;
 
-   let e1x = 1+Math.abs(ball1.velocity.x)
-   let e1y = 1+Math.abs(ball1.velocity.y)
-   let e2x = 1+Math.abs(ball2.velocity.x)
-   let e2y = 1+Math.abs(ball2.velocity.y)
+   let e1x = 1+Math.abs(ball1.velocity.x)*0.1
+   let e1y = 1+Math.abs(ball1.velocity.y)*0.1
+   let e2x = 1+Math.abs(ball2.velocity.x)*0.1
+   let e2y = 1+Math.abs(ball2.velocity.y)*0.1
 
     
 
@@ -198,7 +205,7 @@ function velocityOnCollision2(ball1,ball2){
     V1a = V1Na.add(V1Ta);
     V2a = V2Na.add(V2Ta);
     
-    let elst = 0.95;
+    let elst = 0.98;
 
     ball1.velocity.x = elst*V1a.x1;
     ball1.velocity.y = elst*V1a.x2;
@@ -337,7 +344,7 @@ function Ball(x, y, radius, color, velocity, name, gravity){
         if (this.collisionCount<255){
             this.colorM = this.collisionCount; 
         }
-        this.mass = this.radius*this.radius;
+        
         this.color = `rgb(255,${255-this.colorM},${255-this.colorM})`;
 
         this.draw();
@@ -367,7 +374,7 @@ function Ball(x, y, radius, color, velocity, name, gravity){
             if (this.y<=this.radius){this.y=this.radius};
             if (this.y>=innerHeight-this.radius){this.y=innerHeight-this.radius};
 
-            this.velocity.y = -this.velocity.y*0.90;
+            this.velocity.y = -this.velocity.y*0.80;
             this.velocity.x = this.velocity.x*0.97;    
 
             if (Math.abs(this.velocity.y)<0.0244){
@@ -389,7 +396,11 @@ function Ball(x, y, radius, color, velocity, name, gravity){
             this.y = mouse.y+this.offsety;
             this.velocity.x = this.x-this.px;
             this.velocity.y = this.y-this.py;
+            
+        } else {
+            
         }
+        this.mass = this.radius*this.radius;
         this.collidedWith = [];
         this.py = this.y; 
         this.px = this.x;
@@ -479,7 +490,7 @@ balls.push(new Ball(570,150,100,"red",{x:0,y:2},1,1));
             if (Math.pow(mouse.x-ball.x,2)+Math.pow(mouse.y-ball.y,2) < Math.pow(ball.radius,2)){
                ball.offsetx = ball.x-mouse.x;
                ball.offsety = ball.y-mouse.y;
-               
+               console.log(ball.offsetx+" "+ball.x+" "+mouse.x) 
                 ball.clicked = 1;
                 
             }
