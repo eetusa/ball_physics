@@ -2,7 +2,6 @@
 const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
 
-
 canvas.width = innerWidth;
 canvas.height= innerHeight;
 
@@ -259,6 +258,28 @@ function applyForce(vec,force){
 
 // Objects
 
+function Gravity(){
+    this.value = {x:0,y:0.052};
+    this.gravitates = 1;
+
+    this.changeGravity = function({a,b}){
+        this.value = {x:a,y,b}
+    }
+
+    this.reverseGravity = function(){
+        return {x:-this.value.x,y:-this.value.y};
+    }
+
+    this.toggleFreeze = function(){
+        if (this.gravitates == 1){this.gravitates = 0; return};
+        if (this.gravitates == 0){this.gravitates = 1; return}
+    }
+
+    this.defaultGravity = function(){
+        this.value = {x:0,y:0.052};
+    }
+}
+
 function vector(vector, x, y, color){
     this.x = x;
     this.y = y;
@@ -282,7 +303,7 @@ function vector(vector, x, y, color){
 
 }
 
-function Ball(x, y, radius, color, velocity, name, gravitates){
+function Ball(x, y, radius, color, velocity, name, gravity){
     this.velocity = velocity;
     this.collisionCount = 0;
     this.collidedWith=[];
@@ -298,8 +319,15 @@ function Ball(x, y, radius, color, velocity, name, gravitates){
     this.name = name;
     this.color = color;
     this.colorM;
-    this.gravity ={x:0,y:0.052};
-    this.gravitates = gravitates;
+    this.gravity = gravity
+    this.clicked = 0;
+    this.px = x;
+    this.py = y;
+    this.offsetx = 0;
+    this.offsety = 0;
+    
+
+  
     
     this.scalarVelocity = function(){
         return Math.sqrt(Math.pow(this.velocity.x,2)+Math.pow(this.velocity.y,2));
@@ -307,14 +335,14 @@ function Ball(x, y, radius, color, velocity, name, gravitates){
     
     this.update = balls => {
         if (this.collisionCount<255){
-            this.colorM = this.collisionCount;
+            this.colorM = this.collisionCount; 
         }
-
+        this.mass = this.radius*this.radius;
         this.color = `rgb(255,${255-this.colorM},${255-this.colorM})`;
 
         this.draw();
 
-   
+        if (gravity.gravitates && this.clicked == 0){
         for (let i = 0; i < balls.length; i++){
             
             if (this === balls[i]) continue;
@@ -345,29 +373,31 @@ function Ball(x, y, radius, color, velocity, name, gravitates){
             if (Math.abs(this.velocity.y)<0.0244){
                 this.velocity.y=0;
                 //this.gravity={x:0,y:0.0};
-            }
-
-            
-            
-        } 
-
-        if (this.y < innerHeight-this.radius){this.gravity={x:0,y:0.052}};
- 
-
-        applyForce(this.velocity,this.gravity);
-
+            }   
+        }
       
-        if (gravitates){
-        this.x = this.x + this.velocity.x;
-        this.y = this.y + this.velocity.y;
+        
+          //  if (this.y < innerHeight-this.radius){this.gravity={x:0,y:0.052}};
+            applyForce(this.velocity,this.gravity.value);
+            this.x = this.x + this.velocity.x;
+          this.y = this.y + this.velocity.y;
         
         }
+
+        if (this.clicked == 1){
+            this.x = mouse.x+this.offsetx;
+            this.y = mouse.y+this.offsety;
+            this.velocity.x = this.x-this.px;
+            this.velocity.y = this.y-this.py;
+        }
         this.collidedWith = [];
+        this.py = this.y; 
+        this.px = this.x;
     }
 
     this.draw = function(){
         c.beginPath();
-        c.arc(this.x, this.y, this.radius, 0, Math.PI *  2, false);
+        c.arc(this.x, this.y, this.radius, 0, Math.PI *  2, false); 
         c.fillStyle = this.color;
         c.fill();
         c.closePath(); 
@@ -376,27 +406,7 @@ function Ball(x, y, radius, color, velocity, name, gravitates){
         c.textAlign="center";
         c.textBaseline = "middle";
         //c.fillText(`${Math.round(this.x)}, ${Math.round(this.y)}`,this.x,this.y);
-     //  c.fillText(` ${Math.round(this.mass)}`,this.x,this.y);
-    }
-
-    this.toggleVelocity = function(){
-        if (this.cache.length==0){
-            this.cache.push(this.velocity.x);
-            this.cache.push(this.velocity.y);
-            this.velocity.x = 0;
-            this.velocity.y = 0;
-            this.gravity = {x:0,y:0};
-            return;
-        }
-    
-        if (this.cache.length > 0){
-          
-            this.velocity.x = this.cache[0];
-            this.velocity.y = this.cache[1];
-            this.gravity ={x:0,y:0.0092}
-            this.cache = [];
-            return;
-        }
+        //c.fillText(` ${this.gravity.gravitates}`,this.x,this.y);
     }
 }
 
@@ -410,7 +420,7 @@ function init(){
     balls = [];
     vectors = [];
 
-  
+    let gravity = new Gravity();
     
     for (let i = 0; i < 30; i++){
         let radius = randomIntFromRange(30,50);
@@ -428,7 +438,7 @@ function init(){
             }
         }
         color = randomColor();
-        balls.push(new Ball(x,y,radius,"white",velocity,i,1));
+        balls.push(new Ball(x,y,radius,"white",velocity,i,gravity));
     }
     
    /*
@@ -448,14 +458,45 @@ balls.push(new Ball(570,150,100,"red",{x:0,y:2},1,1));
 
  */
 
-
     addEventListener('keyup', function(e){
         if (e.keyCode==32){
-            balls.forEach(ball => {
-                ball.toggleVelocity();
-            });
+            
+                gravity.toggleFreeze();
+            
         }
     });
+
+    addEventListener('keyup', function(e){
+        if (e.keyCode==69){
+            balls.push(new Ball(mouse.x,mouse.y,randomIntFromRange(10,50),"red",{x:0,y:2},1,gravity));
+        }
+    });
+
+    addEventListener('mousedown',e => {
+        
+        balls.forEach(ball => {
+            
+            if (Math.pow(mouse.x-ball.x,2)+Math.pow(mouse.y-ball.y,2) < Math.pow(ball.radius,2)){
+               ball.offsetx = ball.x-mouse.x;
+               ball.offsety = ball.y-mouse.y;
+               
+                ball.clicked = 1;
+                
+            }
+    
+        });
+    });
+
+    addEventListener("mouseup",e => {
+       
+        balls.forEach(ball => {
+            
+            ball.clicked = 0;
+    
+        });
+    });
+
+    
 
 }
 
