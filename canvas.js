@@ -81,11 +81,33 @@ function randomColor(color){
 }
 
 
-
+function checkRest(balls, value){
+    
+    for (let i = 0; i < balls.length; i++){
+        
+    }
+    return value+1;
+}
 
 
 function velocityOnCollision2(ball1,ball2){
-   // ball1.color ="red";
+
+   ball1.collisionCount++;
+  
+   /*
+    if (Math.abs(ball1.velocity.x)<0.01 && Math.abs(ball1.velocity.y)<0.01){
+        ball1.velocity.x = 0;
+        ball1.velocity.y = 0;
+        return;
+    }
+*/
+
+
+
+
+
+   ball1.color ="red";
+   //ball2.color = "black";
     let x1 = ball1.x;
     let y1 = ball1.y;
 
@@ -103,30 +125,45 @@ function velocityOnCollision2(ball1,ball2){
 
     let X = x2 - x1;
     let Y = y2 - y1;
-
+    let D = Math.sqrt( ( Math.pow(ball2.x-ball1.x,2)+Math.pow(ball2.y-ball1.y,2) ));
     let R = ball1.radius + ball2.radius;
   
-   let s = (R)/Math.sqrt(Math.pow(X,2)+Math.pow(Y,2));
-    let a = X*(s-1);
+   let s = R/D;
+  let s1 = ball1.scalarVelocity()/(ball1.scalarVelocity()+ball2.scalarVelocity());
+  let s2 = ball2.scalarVelocity()/(ball1.scalarVelocity()+ball2.scalarVelocity());
+//  console.log(s1+","+s2);
+  let a = X*(s-1);
     let b = Y*(s-1);
    
-    //console.log("x: "+a+"//"+X+" .. y:"+b+"//"+Y);
-    let colX = ball2.x - X/2;
-    let colY = ball2.y - Y/2;
-    let movx = a;
-    let movy = b;
-  
+    let ratio = ball1.radius/ball2.radius;
+    let colX = ball1.x + (ball1.radius/R)*X;
+    let colY = ball1.y + (ball1.radius/R)*Y;
+   // let movx = a*1.0;
+   // let movy = b*1.0;
 
-    //console.log("ball1.xb: "+ball1.x+" ball1.yb :"+ball1.y+" ball2.xb: "+ball2.x+" ball2.yb: "+ball2.y+" - "+movx+" "+movy);
-    ball1.x=ball1.x - a;
-    ball1.y=ball1.y - b;
+   let e1x = 1+Math.abs(ball1.velocity.x)
+   let e1y = 1+Math.abs(ball1.velocity.y)
+   let e2x = 1+Math.abs(ball2.velocity.x)
+   let e2y = 1+Math.abs(ball2.velocity.y)
+
     
 
-  
-    //console.log("ball1.xa: "+ball1.x+" ball1.ya :"+ball1.y+" ball2.xa: "+ball2.x+" ball2.ya: "+ball2.y);
+  //  console.log("ball1x: "+ball1.x+" ball1y: "+ball1.y+", ball2x: "+ball2.x+" ball2y: "+ball2.y + ", X: "+X+" Y: "+Y+", D: "+D);
+   
+   
+    ball1.x=ball1.x - a*s1*e1x;
+    ball1.y=ball1.y - b*s1*e1y;
+    ball2.x=ball2.x + a*s2*e2x;
+    ball2.y=ball2.y + b*s2*e2y;
+
+    
+    //debugger;
+   // console.log("x: "+a+"//"+X+" .. y:"+b+"//"+Y+" s: "+ratio);
+   // console.log("ball1.xb: "+ball1.x+" ball1.yb :"+ball1.y+" ball2.xb: "+ball2.x+" ball2.yb: "+ball2.y+" - "+movx+" "+movy);
+    
  
     //ball1.x=innerWidth-ball1.radius-1;
-    let D = Math.sqrt( ( Math.pow(X,2)+Math.pow(Y,2) ));
+
 
     let V1 = new Vector(Vx1,Vy1);
     let V2 = new Vector(Vx2,Vy2);
@@ -135,7 +172,7 @@ function velocityOnCollision2(ball1,ball2){
 
     let UN = N.scale(1/D);
     let UT = new Vector(-UN.x2,UN.x1);
-    //vectors.push(new vector(UT,colX,colY,"red"));
+   // vectors.push(new vector(UT,colX,colY,"red"));
    // vectors.push(new vector(UN,colX,colY,"blue"));
     //console.log(x1+" "+x2+" "+colX);
 
@@ -155,18 +192,43 @@ function velocityOnCollision2(ball1,ball2){
 
     V1Na = UN.scale(v1Na);
     V1Ta = UT.scale(v1Ta);
-
+ 
     V2Na = UN.scale(v2Na);
     V2Ta = UT.scale(v2Ta);
 
     V1a = V1Na.add(V1Ta);
     V2a = V2Na.add(V2Ta);
     
-    ball1.velocity.x = V1a.x1;
-    ball1.velocity.y = V1a.x2;
+    let elst = 0.95;
 
-    ball2.velocity.x = V2a.x1;
-    ball2.velocity.y = V2a.x2;
+    ball1.velocity.x = elst*V1a.x1;
+    ball1.velocity.y = elst*V1a.x2;
+
+    ball2.velocity.x = elst*V2a.x1;
+    ball2.velocity.y = elst*V2a.x2;
+
+   // console.log("ball1x: "+ball1.x+" ball1y: "+ball1.y+", ball2x: "+ball2.x+" ball2y: "+ball2.y+", D: "+Math.sqrt( ( Math.pow(ball2.x-ball1.x,2)+Math.pow(ball2.y-ball1.y,2) ))+", ball1vx: "+ball1.velocity.x +" ball1vy: "+ball1.velocity.y+" ball1scalarv: "+ball1.scalarVelocity()+", ball2vx: "+ball2.velocity.x+" ball2vy: "+ball2.velocity.y+" ball2scalarv: "+ball2.scalarVelocity());
+   // console.log("1x: "+V1a.x1+" 1y: "+V1a.x2+ " 2x: "+V2a.x1+" 2y: "+V2a.x2);
+
+   //ball1.x=ball1.x - movx;
+   //ball1.y=ball1.y - movy;
+/*
+    if (ball2.x-(ball1.x+ball1.velocity.x) > ball2.x-ball1.x){
+    ball1.x += ball1.velocity.x;} else {ball1.x -= ball1.velocity.x;}
+
+    if (ball2.y-(ball1.y+ball1.velocity.y) > ball2.y-ball1.y){
+    ball1.y += ball1.velocity.y; console.log("this");} else {ball1.y -= ball1.velocity.y;}
+
+    if (ball2.x+ball2.velocity.x-ball1.x > ball2.x-ball1.x){
+    ball2.x += ball2.velocity.x;} else {ball2.x -= ball2.velocity.x;}
+
+    if (ball2.y+ball2.velocity.y-ball1.y > ball2.y-ball1.y){
+    ball2.y += ball2.velocity.y; console.log("this");} else {ball2.y -= ball2.velocity.y;}
+
+*/
+ // vectors.push(new vector(V1a,colX,colY,"black"));
+ // vectors.push(new vector(V2a,colX,colY,"green"));
+    //console.log("ball1.xa: "+ball1.x+" ball1.ya :"+ball1.y+" ball2.xa: "+ball2.x+" ball2.ya: "+ball2.y);
 /*
     ball1.x += ball1.velocity.x;
     ball1.y += ball1.velocity.y;
@@ -179,11 +241,15 @@ function velocityOnCollision2(ball1,ball2){
     ball2.x=ball2.x-2*ball2.velocity.x;
     ball2.y=ball2.y-2*ball2.velocity.y;
 
+
+   balls.forEach(ball => ball.toggleVelocity);
+ 
    ball1.velocity.x= 0;
    ball1.velocity.y=0;
    ball2.velocity.x=0;
    ball2.velocity.y=0;
-   */
+  */
+ 
 }
 
 function applyForce(vec,force){
@@ -216,45 +282,87 @@ function vector(vector, x, y, color){
 
 }
 
-function Ball(x, y, radius, color, velocity){
-    this.speed = 2;
+function Ball(x, y, radius, color, velocity, name, gravitates){
+    this.velocity = velocity;
+    this.collisionCount = 0;
+    this.collidedWith=[];
+    this.collisionByRelation=[];
+    this.counter = 0;
+    this.speed = 5;
     this.x = x;
     this.y = y;
-    this.mass = radius/100;
+    this.mass = radius*radius;
     this.radius = radius;
-    this.color = color;
+    //this.color = color;
     this.cache = [];
-    this.velocity = velocity;
-
-
+    this.name = name;
+    this.color = color;
+    this.colorM;
+    this.gravity ={x:0,y:0.052};
+    this.gravitates = gravitates;
+    
+    this.scalarVelocity = function(){
+        return Math.sqrt(Math.pow(this.velocity.x,2)+Math.pow(this.velocity.y,2));
+    }
+    
     this.update = balls => {
+        if (this.collisionCount<255){
+            this.colorM = this.collisionCount;
+        }
+
+        this.color = `rgb(255,${255-this.colorM},${255-this.colorM})`;
+
         this.draw();
 
+   
         for (let i = 0; i < balls.length; i++){
             
             if (this === balls[i]) continue;
             if (distance(this.x,this.y,balls[i].x,balls[i].y)<this.radius+balls[i].radius){
-                velocityOnCollision2(this,balls[i]);
+                
+                    velocityOnCollision2(this,balls[i]);
+                
             }
-        }     
+        } 
+   
         if (this.x <= this.radius || this.x >= innerWidth-this.radius){
            
            
-            if (this.x<=this.radius){this.x=this.radius+1};
-            if (this.x>=innerWidth-this.radius){this.x=innerWidth-this.radius-1};
-            this.velocity.x = -this.velocity.x;
+            if (this.x<=this.radius){this.x=this.radius};
+            if (this.x>=innerWidth-this.radius){this.x=innerWidth-this.radius};
+            this.velocity.x = -this.velocity.x*0.95;
+            this.velocity.y = this.velocity.y*0.97;
         }
 
         if (this.y <= this.radius || this.y >= innerHeight-this.radius){
            
-            if (this.y<=this.radius){this.y=this.radius+1};
-            if (this.y>=innerHeight-this.radius){this.y=innerHeight-this.radius-1};
-            this.velocity.y = -this.velocity.y;
-          
-        }
-        //applyForce(this.velocity,{x:0,y:0.092});
+            if (this.y<=this.radius){this.y=this.radius};
+            if (this.y>=innerHeight-this.radius){this.y=innerHeight-this.radius};
+
+            this.velocity.y = -this.velocity.y*0.90;
+            this.velocity.x = this.velocity.x*0.97;    
+
+            if (Math.abs(this.velocity.y)<0.0244){
+                this.velocity.y=0;
+                //this.gravity={x:0,y:0.0};
+            }
+
+            
+            
+        } 
+
+        if (this.y < innerHeight-this.radius){this.gravity={x:0,y:0.052}};
+ 
+
+        applyForce(this.velocity,this.gravity);
+
+      
+        if (gravitates){
         this.x = this.x + this.velocity.x;
-        this.y = this.y + this.speed*this.velocity.y;
+        this.y = this.y + this.velocity.y;
+        
+        }
+        this.collidedWith = [];
     }
 
     this.draw = function(){
@@ -264,11 +372,11 @@ function Ball(x, y, radius, color, velocity){
         c.fill();
         c.closePath(); 
         c.font = "15px Arial";
-        c.fillStyle = "white";
+        c.fillStyle = "black";
         c.textAlign="center";
         c.textBaseline = "middle";
-        c.fillText(`${Math.round(this.x)}, ${Math.round(this.y)}`,this.x,this.y);
-
+        //c.fillText(`${Math.round(this.x)}, ${Math.round(this.y)}`,this.x,this.y);
+     //  c.fillText(` ${Math.round(this.mass)}`,this.x,this.y);
     }
 
     this.toggleVelocity = function(){
@@ -277,6 +385,7 @@ function Ball(x, y, radius, color, velocity){
             this.cache.push(this.velocity.y);
             this.velocity.x = 0;
             this.velocity.y = 0;
+            this.gravity = {x:0,y:0};
             return;
         }
     
@@ -284,6 +393,7 @@ function Ball(x, y, radius, color, velocity){
           
             this.velocity.x = this.cache[0];
             this.velocity.y = this.cache[1];
+            this.gravity ={x:0,y:0.0092}
             this.cache = [];
             return;
         }
@@ -299,9 +409,11 @@ let vectors;
 function init(){
     balls = [];
     vectors = [];
+
+  
     
-    for (let i = 0; i < 5; i++){
-        let radius = randomIntFromRange(30,60);
+    for (let i = 0; i < 30; i++){
+        let radius = randomIntFromRange(30,50);
         let x = randomIntFromRange(radius,canvas.width-radius);
         let y = randomIntFromRange(radius,canvas.height-radius);
         let velocity = {x: Math.random()-0.5, y: Math.random()-0.5};
@@ -316,13 +428,26 @@ function init(){
             }
         }
         color = randomColor();
-        balls.push(new Ball(x,y,radius,color,velocity));
+        balls.push(new Ball(x,y,radius,"white",velocity,i,1));
     }
-    /*
-    balls.push(new Ball(500,800,100,"black",{x:-0.2,y:-0.2}));
-    balls.push(new Ball(500,400,100,"black",{x:0.1,y:0.4}));
-    */
     
+   /*
+    
+    balls.push(new Ball(600,110,100,"black",{x:0.2,y:0.4}));
+  
+  
+   balls.push(new Ball(530,800,50,"black",{x:0,y:-0.2},"1"));
+   balls.push(new Ball(500,500,50,"black",{x:0,y:0.1},"2"));
+
+
+
+balls.push(new Ball(600,400,50,"black",{x:0,y:-0.3},123123,1));
+balls[balls.length-1].mass=9999999;
+
+balls.push(new Ball(570,150,100,"red",{x:0,y:2},1,1));
+
+ */
+
 
     addEventListener('keyup', function(e){
         if (e.keyCode==32){
@@ -337,6 +462,7 @@ function init(){
 function animate(){
     requestAnimationFrame(animate);
     c.clearRect(0,0,canvas.width, canvas.height);
+    //applyForces(balls);
     balls.forEach(ball => {
         ball.update(balls);
 
@@ -345,8 +471,93 @@ function animate(){
         vector.update(vectors);
     })
     c.fillStyle="white";
-    c.fillText(mouse.x+","+mouse.y, mouse.x, mouse.y);
+    c.fillText(Math.sqrt(Math.pow(balls[0].x-balls[1].x,2)+Math.pow(balls[0].y-balls[1].y,2)), mouse.x, mouse.y);
 }
+/*
+function applyForces(array){
+    //console.log(array[0].radius);
+    let collisionTree = [];
+  
+    for (let i = 0; i < array.length; i++){
+        for (let j = 0; j < array.length; j++){
+                
+            if (i!=j){
+
+                if (distance(array[i].x, array[i].y, array[j].x, array[j].y) < (array[i].radius + array[j].radius)){
+                    
+
+                    if (collisionTree.length == 0){
+                        collisionTree.push([array[i],array[j]]);
+                       
+                        
+                    } else {
+
+                        for (let k = 0; k < collisionTree.length; k++){
+                            if (collisionTree[k].indexOf(array[i])>-1){
+                                if (collisionTree[k].indexOf(array[j])==-1){
+                                    
+                                    collisionTree[k].push(array[j]);
+                                }
+                                break;
+                            }
+                            if (collisionTree[k].indexOf(array[j])>-1){
+                                if (collisionTree[k].indexOf(array[i]==-1)){
+                                   
+                                    collisionTree[k].push(array[i]);
+                                }
+                                break;
+                            }
+                            if (k==collisionTree.length-1 ){
+                                collisionTree.push([array[i],array[j]]);
+                            }
+                        }
+                    }
+                
+                }
+            }
+        }
+        
+        if (array[i].y>=innerHeight-this.radius){applyForce(array[i].velocity,{x:0,y:-0.052})};
+        applyForce(array[i].velocity,array[i].gravity);
+        
+    }
+  
+    for (let i = 0; i < collisionTree.length; i++){
+       
+        collisionTree[i].sort(function(a,b){return b.scalarvelocity - a.scalarvelocity});
+       
+       
+        for (let j = 0; j < collisionTree[i].length; j++){
+            for (let k = 0; k < collisionTree[i].length; k++){
+                if (j!=k){
+                    let color = randomColor();
+                if (collisionTree[i][j].collidedWith.indexOf(collisionTree[i][k].name) == -1){
+                    
+                    collisionTree[i][j].collidedWith.push(collisionTree[i][k].name);
+                    collisionTree[i][k].collidedWith.push(collisionTree[i][j].name);
+                    collisionTree[i][j].color = color;
+                    collisionTree[i][k].color = color;
+
+                    velocityOnCollision2(collisionTree[i][j],collisionTree[i][k]);
+                    
+                }
+                }
+            } 
+
+            
+            
+        }
+        
+    }
+    
+
+    collisionTree = [];
+    
+
+
+}
+
+*/
 
 init();
 animate();
