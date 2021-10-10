@@ -18,6 +18,14 @@ const colors = [
     '#FF7F66',
 ];
 
+const colors2 = [
+    "red",
+    "black",
+    "green",
+    "orange",
+    "gray",
+]
+
 // Eventlisteners
 
 addEventListener("mousemove", function(event){
@@ -263,10 +271,14 @@ function applyForce(vec,force){
     vec.y = vec.y + force.y;
 };
 
+function pointInPolygon(P,polygon){
+
+}
+
 // Objects
 
 function Gravity(){
-    this.value = {x:0,y:0.052};
+    this.value = {x:0,y:0.092};
     this.gravitates = 1;
 
     this.changeGravity = function({a,b}){
@@ -283,7 +295,7 @@ function Gravity(){
     }
 
     this.defaultGravity = function(){
-        this.value = {x:0,y:0.052};
+        this.value = {x:0,y:0.092};
     }
 }
 
@@ -308,6 +320,149 @@ function vector(vector, x, y, color){
 
     }
 
+}
+
+function Rectangle (x, y, width, height, axisXoffset, axisYoffset, rotation, color, velocity, name, gravity){
+
+    this.x = x;
+    this.y = y;
+
+    this.rotation = rotation; // radians
+    this.angularvelocity = 0.002;
+    this.width = width;
+    this.height = height;
+    this.color = color;
+    this.velocity = velocity;
+    this.name = name;
+    this.gravity = gravity;
+    this.diag = Math.sqrt(Math.pow(this.height,2)+Math.pow(this.width,2));
+    
+
+    console.log(Math.PI-this.rotation);
+    this.vertices = [];
+    this.vertices.push(new Vector(this.x,this.y));
+    this.vertices.push(new Vector(this.x+Math.cos(Math.PI/2+this.rotation)*this.height, this.y+Math.sin(Math.PI/2+this.rotation)*this.height));
+    console.log(this.vertices);
+    this.vertices.push(new Vector(this.x+Math.cos(this.rotation)*this.width,this.y+Math.sin(this.rotation)*this.width));
+    this.vertices.push(new Vector(this.x+Math.cos(this.rotation)*this.width+Math.cos(Math.PI/2+this.rotation)*this.height,this.y+Math.sin(this.rotation)*this.width+Math.sin(Math.PI/2+this.rotation)*this.height));
+    
+    if (axisXoffset == "right"){
+        this.axisoffsetX = width/2;
+        
+    } else if (axisXoffset == "left"){
+        this.axisoffsetX = -width/2;
+       
+    } else{
+        this.axisoffsetX = axisXoffset;
+    }
+
+    if (axisYoffset == "top"){
+        this.axisoffsetY = height/2;
+    } else if (axisYoffset == "bottom"){
+        this.axisoffsetY = -height/2;
+    } else{
+        this.axisoffsetY = axisYoffset;
+    }
+
+    
+
+    this.axisx = this.x+this.width/2+this.axisoffsetX;
+    this.axisy = this.y+this.height/2+this.axisoffsetY;
+   // this.vertices.push(new Vector(this.axisx,this.axisy));
+    //this.vertices.push(new Vector(this.x,this.y));
+    this.offsetdiag = Math.sqrt(Math.pow(this.axisx-this.axisoffsetX,2)+Math.pow(this.axisy-this.axisoffsetY,2));
+  
+    this.corner_off0x = this.width/2-this.axisoffsetX;
+    this.corner_off0y = this.height/2-this.axisoffsetY;
+
+ 
+
+  console.log (this.x + " "+this.y+ " "+this.axisx+" "+Math.sqrt(Math.pow(this.corner_off0x,2)+Math.pow(this.corner_off0y,2)));
+
+    this.update = rectangles => {
+
+    this.angularvelocity=0.002;
+    this.rotation = this.rotation + this.angularvelocity;
+
+    this.tempa1 = (this.axisoffsetX - this.width/2);
+    this.tempb1 = (this.axisoffsetY - this.height/2);
+    this.tempc1 = Math.PI/2 - this.rotation - Math.tanh(this.tempb1/this.tempa1);
+
+    this.tempa2 = (this.axisoffsetX + this.width/2);
+    this.tempb2 = (this.axisoffsetY - this.height/2);
+    this.tempc2 = Math.PI/2 - this.rotation - Math.tanh(this.tempb2/this.tempa2);
+
+    this.tempa3 = (this.axisoffsetX + this.width/2);
+    this.tempb3 = (this.axisoffsetY + this.height/2);
+    this.tempc3 = Math.PI/2 - this.rotation - Math.tanh(this.tempb3/this.tempa3);
+
+    this.tempa4 = (this.axisoffsetX - this.width/2);
+    this.tempb4 = (this.axisoffsetY + this.height/2);
+    this.tempc4 = Math.PI/2 - this.rotation - Math.tanh(this.tempb4/this.tempa4);
+
+  if (Math.abs(this.axisoffsetX)>this.width/2){
+    this.vertices[0].x1 = this.axisx - Math.cos(Math.PI/2-this.tempc1)*Math.sqrt(Math.pow(this.tempa1,2)+Math.pow(this.tempb1,2));
+    this.vertices[0].x2 = this.axisy - Math.sin(Math.PI/2-this.tempc1)*Math.sqrt(Math.pow(this.tempa1,2)+Math.pow(this.tempb1,2));
+    this.vertices[3].x1 = this.axisx - Math.cos(Math.PI/2-this.tempc4)*Math.sqrt(Math.pow(this.tempa4,2)+Math.pow(this.tempb4,2));
+    this.vertices[3].x2 = this.axisy - Math.sin(Math.PI/2-this.tempc4)*Math.sqrt(Math.pow(this.tempa4,2)+Math.pow(this.tempb4,2));
+  } else {
+    this.vertices[0].x1 = this.axisx - Math.cos(Math.PI/2+this.tempc1)*Math.sqrt(Math.pow(this.tempa1,2)+Math.pow(this.tempb1,2)); // POTENTIAL!!
+    this.vertices[0].x2 = this.axisy + Math.sin(Math.PI/2+this.tempc1)*Math.sqrt(Math.pow(this.tempa1,2)+Math.pow(this.tempb1,2));
+    this.vertices[3].x1 = this.axisx - Math.cos(Math.PI/2+this.tempc4)*Math.sqrt(Math.pow(this.tempa4,2)+Math.pow(this.tempb4,2));
+    this.vertices[3].x2 = this.axisy + Math.sin(Math.PI/2+this.tempc4)*Math.sqrt(Math.pow(this.tempa4,2)+Math.pow(this.tempb4,2));
+  }
+    this.vertices[1].x1 = this.axisx - Math.cos(Math.PI/2-this.tempc2)*Math.sqrt(Math.pow(this.tempa2,2)+Math.pow(this.tempb2,2));
+    this.vertices[1].x2 = this.axisy - Math.sin(Math.PI/2-this.tempc2)*Math.sqrt(Math.pow(this.tempa2,2)+Math.pow(this.tempb2,2));
+    this.vertices[2].x1 = this.axisx - Math.cos(Math.PI/2-this.tempc3)*Math.sqrt(Math.pow(this.tempa3,2)+Math.pow(this.tempb3,2));
+    this.vertices[2].x2 = this.axisy - Math.sin(Math.PI/2-this.tempc3)*Math.sqrt(Math.pow(this.tempa3,2)+Math.pow(this.tempb3,2));
+
+    
+
+        this.draw();
+    }
+
+    this.draw = function(){
+        c.beginPath();
+        c.translate(this.axisx,this.axisy);
+        c.rotate((this.rotation));
+        c.fillStyle = this.color;
+        c.fillRect(-this.width/2-this.axisoffsetX,-this.height/2-this.axisoffsetY, this.width, this.height); 
+      /*
+        c.font = "15px Arial";
+        c.fillStyle = "black";
+        c.textAlign="center";
+        c.textBaseline = "middle";
+        c.fillText(this.axisoffsetX>this.width/2, 0,0);
+        */
+        c.rotate(-(this.rotation));
+        c.translate(-this.axisx,-this.axisy);
+        
+        
+
+        for (let i = 0; i < this.vertices.length; i++){
+            c.fillStyle = "black";
+            if (i==5)c.fillStyle = "white";
+            c.fillRect(this.vertices[i].x1, this.vertices[i].x2,5,5);
+           // if (i==0)c.fillRect(this.vertices[i].x1, this.vertices[i].x2,10,10);
+            
+            c.fillStyle = colors2[i];
+            if (i==5)c.fillStyle = "white";
+            c.fillRect(this.vertices[i].x1+1, this.vertices[i].x2+1,3,3);
+        }
+       // c.beginPath();
+ 
+       
+        
+        
+
+        c.closePath();
+       
+
+       // c.font = "15px Arial";
+       // c.fillStyle = "black";
+      //  c.textBaseline = "middle";
+       // c.fillText(this.axisx+ " "+this.axisoffsetX,this.x,this.y);
+    }
 }
 
 function Ball(x, y, radius, color, velocity, name, gravity){
@@ -344,8 +499,10 @@ function Ball(x, y, radius, color, velocity, name, gravity){
         if (this.collisionCount<255){
             this.colorM = this.collisionCount; 
         }
+        this.targetColor = "rgb(224, 202, 60)";
         
         this.color = `rgb(255,${255-this.colorM},${255-this.colorM})`;
+        this.color = "rgb(45, 48, 71)";
 
         this.draw();
 
@@ -424,50 +581,47 @@ function Ball(x, y, radius, color, velocity, name, gravity){
 // Implementation
 let balls;
 let vectors;
-
+let rectangles;
+let gravity;
 
 
 function init(){
+    gravity = new Gravity();
+
+    rectangles = [];
     balls = [];
     vectors = [];
 
-    let gravity = new Gravity();
-    
-    for (let i = 0; i < 30; i++){
-        let radius = randomIntFromRange(30,50);
-        let x = randomIntFromRange(radius,canvas.width-radius);
-        let y = randomIntFromRange(radius,canvas.height-radius);
-        let velocity = {x: Math.random()-0.5, y: Math.random()-0.5};
-        if (i !== 0){
-            for (let j = 0; j < balls.length; j++){
-                if ( distance (x,y,balls[j].x,balls[j].y) <= radius+balls[j].radius ){
+    //rectangles.push(new Rectangle(100,100,100,20,0,0,10,"red",0,"ding",0));
+   // rectangles.push(new Rectangle(500,500,260,30,0,0,0,"white",0,"ding",0));
+//    rectangles.push(new Rectangle(400,300,300,30,-100,"bottom",0*(Math.PI/180),"rgb(255,100,100)",0,"ding",0));
+//     rectangles.push(new Rectangle(600,400,300,30,100,15,0*(Math.PI/180),"rgb(100,100,255)",0,"ding",0));
 
-                    x = randomIntFromRange(radius,canvas.width-radius);
-                    y = randomIntFromRange(radius,canvas.height-radius);
-                    j = -1;
+//     rectangles.push(new Rectangle(800,200,300,30,160,0,0*(Math.PI/180),"rgb(255,255,100)",0,"ding",0));
+addEventListener('keyup', function(e){
+    if (e.keyCode==66){
+        
+        for (let i = 0; i < 30; i++){
+            let radius = randomIntFromRange(30,50);
+            let x = randomIntFromRange(radius,canvas.width-radius);
+            let y = randomIntFromRange(radius,canvas.height-radius);
+            let velocity = {x: Math.random()-0.5, y: Math.random()-0.5};
+            if (i !== 0){
+                for (let j = 0; j < balls.length; j++){
+                    if ( distance (x,y,balls[j].x,balls[j].y) <= radius+balls[j].radius ){
+    
+                        x = randomIntFromRange(radius,canvas.width-radius);
+                        y = randomIntFromRange(radius,canvas.height-radius);
+                        j = -1;
+                    }
                 }
             }
+            color = randomColor();
+            balls.push(new Ball(x,y,radius,"white",velocity,i,gravity));
         }
-        color = randomColor();
-        balls.push(new Ball(x,y,radius,"white",velocity,i,gravity));
+        
     }
-    
-   /*
-    
-    balls.push(new Ball(600,110,100,"black",{x:0.2,y:0.4}));
-  
-  
-   balls.push(new Ball(530,800,50,"black",{x:0,y:-0.2},"1"));
-   balls.push(new Ball(500,500,50,"black",{x:0,y:0.1},"2"));
-
-
-
-balls.push(new Ball(600,400,50,"black",{x:0,y:-0.3},123123,1));
-balls[balls.length-1].mass=9999999;
-
-balls.push(new Ball(570,150,100,"red",{x:0,y:2},1,1));
-
- */
+});
 
     addEventListener('keyup', function(e){
         if (e.keyCode==32){
@@ -515,101 +669,22 @@ function animate(){
     requestAnimationFrame(animate);
     c.clearRect(0,0,canvas.width, canvas.height);
     //applyForces(balls);
+   
     balls.forEach(ball => {
         ball.update(balls);
 
     });
+    
     vectors.forEach(vector => {
         vector.update(vectors);
     })
-    c.fillStyle="white";
-    c.fillText(Math.sqrt(Math.pow(balls[0].x-balls[1].x,2)+Math.pow(balls[0].y-balls[1].y,2)), mouse.x, mouse.y);
-}
-/*
-function applyForces(array){
-    //console.log(array[0].radius);
-    let collisionTree = [];
-  
-    for (let i = 0; i < array.length; i++){
-        for (let j = 0; j < array.length; j++){
-                
-            if (i!=j){
-
-                if (distance(array[i].x, array[i].y, array[j].x, array[j].y) < (array[i].radius + array[j].radius)){
-                    
-
-                    if (collisionTree.length == 0){
-                        collisionTree.push([array[i],array[j]]);
-                       
-                        
-                    } else {
-
-                        for (let k = 0; k < collisionTree.length; k++){
-                            if (collisionTree[k].indexOf(array[i])>-1){
-                                if (collisionTree[k].indexOf(array[j])==-1){
-                                    
-                                    collisionTree[k].push(array[j]);
-                                }
-                                break;
-                            }
-                            if (collisionTree[k].indexOf(array[j])>-1){
-                                if (collisionTree[k].indexOf(array[i]==-1)){
-                                   
-                                    collisionTree[k].push(array[i]);
-                                }
-                                break;
-                            }
-                            if (k==collisionTree.length-1 ){
-                                collisionTree.push([array[i],array[j]]);
-                            }
-                        }
-                    }
-                
-                }
-            }
-        }
-        
-        if (array[i].y>=innerHeight-this.radius){applyForce(array[i].velocity,{x:0,y:-0.052})};
-        applyForce(array[i].velocity,array[i].gravity);
-        
-    }
-  
-    for (let i = 0; i < collisionTree.length; i++){
-       
-        collisionTree[i].sort(function(a,b){return b.scalarvelocity - a.scalarvelocity});
-       
-       
-        for (let j = 0; j < collisionTree[i].length; j++){
-            for (let k = 0; k < collisionTree[i].length; k++){
-                if (j!=k){
-                    let color = randomColor();
-                if (collisionTree[i][j].collidedWith.indexOf(collisionTree[i][k].name) == -1){
-                    
-                    collisionTree[i][j].collidedWith.push(collisionTree[i][k].name);
-                    collisionTree[i][k].collidedWith.push(collisionTree[i][j].name);
-                    collisionTree[i][j].color = color;
-                    collisionTree[i][k].color = color;
-
-                    velocityOnCollision2(collisionTree[i][j],collisionTree[i][k]);
-                    
-                }
-                }
-            } 
-
-            
-            
-        }
-        
-    }
-    
-
-    collisionTree = [];
-    
-
-
+    rectangles.forEach(rectangle => {
+        rectangle.update(rectangles);
+    })
+    // c.fillStyle="black";
+    // c.fillText(mouse.x +" "+ mouse.y, mouse.x, mouse.y);
 }
 
-*/
 
 init();
 animate();
